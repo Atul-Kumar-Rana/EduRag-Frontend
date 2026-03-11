@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 100 7% 95%;
+    --foreground: 100 12% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 100 12% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 100 12% 11%;
+    --primary: 94 33% 38%;
+    --primary-foreground: 40 50% 85%;
+    --primary-hover: 94 30% 54%;
+    --secondary: 100 8% 91%;
+    --secondary-foreground: 100 12% 11%;
+    --muted: 100 8% 91%;
+    --muted-foreground: 100 8% 34%;
+    --accent: 100 8% 91%;
+    --accent-foreground: 100 12% 11%;
+    --destructive: 0 60% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 48 50% 53%;
+    --warning-foreground: 100 12% 11%;
+    --success: 94 33% 38%;
+    --success-foreground: 0 0% 100%;
+    --border: 100 12% 80%;
+    --input: 100 12% 80%;
+    --ring: 94 33% 38%;
+    --radius: 0.75rem;
+    --sidebar-background: 100 8% 91%;
+    --sidebar-foreground: 100 8% 34%;
+    --sidebar-primary: 94 33% 38%;
+    --sidebar-primary-foreground: 40 50% 85%;
+    --sidebar-accent: 100 12% 86%;
+    --sidebar-accent-foreground: 100 12% 11%;
+    --sidebar-border: 100 12% 80%;
+    --sidebar-ring: 94 33% 38%;
+  }
+
+  .dark {
+    --background: 100 12% 11%;
+    --foreground: 40 50% 85%;
+    --card: 100 10% 15%;
+    --card-foreground: 40 50% 85%;
+    --popover: 100 10% 15%;
+    --popover-foreground: 40 50% 85%;
+    --primary: 94 33% 38%;
+    --primary-foreground: 40 50% 85%;
+    --primary-hover: 94 30% 54%;
+    --secondary: 100 12% 16%;
+    --secondary-foreground: 40 50% 85%;
+    --muted: 100 12% 16%;
+    --muted-foreground: 100 5% 63%;
+    --accent: 100 12% 16%;
+    --accent-foreground: 40 50% 85%;
+    --destructive: 0 60% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --warning: 48 50% 53%;
+    --warning-foreground: 100 12% 11%;
+    --success: 94 33% 38%;
+    --success-foreground: 0 0% 100%;
+    --border: 120 13% 26%;
+    --input: 120 13% 26%;
+    --ring: 94 33% 38%;
+    --sidebar-background: 100 12% 10%;
+    --sidebar-foreground: 100 5% 63%;
+    --sidebar-primary: 94 33% 38%;
+    --sidebar-primary-foreground: 40 50% 85%;
+    --sidebar-accent: 120 13% 20%;
+    --sidebar-accent-foreground: 40 50% 85%;
+    --sidebar-border: 120 13% 26%;
+    --sidebar-ring: 94 30% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+  code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Shimmer animation for hero */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)) 0%,
+    hsl(var(--primary-hover)) 40%,
+    hsl(40, 50%, 85%) 50%,
+    hsl(var(--primary-hover)) 60%,
+    hsl(var(--primary)) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+/* Pulse for processing badges */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* Skeleton shimmer */
+@keyframes skeleton-wave {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-shimmer {
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+}
+
+/* Green tinted shadow */
+.shadow-green {
+  box-shadow: 0 4px 20px -4px hsl(var(--primary) / 0.15);
+}
+.shadow-green-lg {
+  box-shadow: 0 8px 30px -6px hsl(var(--primary) / 0.25);
+}

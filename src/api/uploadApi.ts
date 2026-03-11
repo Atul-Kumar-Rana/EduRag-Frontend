@@ -1,0 +1,37 @@
+import api from './axiosInstance';
+import type { UploadResponse, DocumentStatus, Document } from '@/types';
+
+export const uploadDocument = async (
+  file: File,
+  subject: string,
+  chapter: string,
+  uploadedBy: string = 'admin'
+): Promise<UploadResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('subject', subject);
+  formData.append('chapter', chapter);
+  formData.append('uploadedBy', uploadedBy);
+  const { data } = await api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+};
+
+export const getDocumentStatus = async (documentId: string): Promise<DocumentStatus> => {
+  const { data } = await api.get(`/upload/status/${documentId}`);
+  return data;
+};
+
+export const getAllDocuments = async (subject?: string, chapter?: string): Promise<Document[]> => {
+  const params = new URLSearchParams();
+  if (subject) params.append('subject', subject);
+  if (chapter) params.append('chapter', chapter);
+  const { data } = await api.get(`/upload/documents?${params.toString()}`);
+  return data;
+};
+
+export const deleteDocument = async (documentId: string): Promise<{ message: string; documentId: string }> => {
+  const { data } = await api.delete(`/upload/documents/${documentId}`);
+  return data;
+};
