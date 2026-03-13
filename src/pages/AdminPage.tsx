@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, CheckCircle, Trash2, FileText, RefreshCw } from 'lucide-react';
-import { uploadDocument, getAllDocuments, deleteDocument, getDocumentStatus } from '@/api/uploadApi';
+import { uploadDocument, getAllDocuments, deleteDocument, getDocumentStatus, uploadDocumentAndGenerateQuestions } from '@/api/uploadApi';
 import { Spinner } from '@/components/ui/Spinner';
 import { SkeletonCard } from '@/components/ui/SkeletonCard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -35,11 +35,12 @@ export default function AdminPage() {
   });
 
   const uploadMutation = useMutation({
-    mutationFn: () => uploadDocument(file!, subject, chapter),
-    onSuccess: (data) => {
-      setUploadedId(data.documentId);
-      toast.success('Document uploaded successfully!');
+    mutationFn: async () => {
+      const { uploadResponse, generatedQuestions } = await uploadDocumentAndGenerateQuestions(file!, subject, chapter);
+      setUploadedId(uploadResponse.documentId);
+      toast.success('Document uploaded and questions generated successfully!');
       queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['questions'] }); // Refresh questions in Question Bank
       setFile(null);
     },
     onError: () => toast.error('Upload failed. Is the server running?'),
