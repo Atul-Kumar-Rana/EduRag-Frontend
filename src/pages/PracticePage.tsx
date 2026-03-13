@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Copy, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { askQuestion } from '@/api/askApi';
 import { generateQuestions } from '@/api/generateApi';
 import { Spinner } from '@/components/ui/Spinner';
+import { fetchUploadedPDFs } from '@/api/uploadApi';
 import type { AskResponse, Question, Difficulty, QuestionType } from '@/types';
 import { toast } from 'sonner';
 
@@ -116,12 +117,27 @@ export default function PracticePage() {
     try {
       const res = await generateQuestions(subject, chapter, numQ, difficulty, qType);
       setQuestions(res.questions);
+      toast.success('Questions generated successfully!');
     } catch {
       toast.error('Failed to generate questions.');
     } finally {
       setGenLoading(false);
     }
   };
+
+  const [uploadedPDFs, setUploadedPDFs] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchPDFs = async () => {
+      try {
+        const pdfs = await fetchUploadedPDFs();
+        setUploadedPDFs(pdfs);
+      } catch {
+        toast.error('Failed to fetch uploaded PDFs.');
+      }
+    };
+    fetchPDFs();
+  }, []);
 
   return (
     <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-8">
@@ -277,6 +293,19 @@ export default function PracticePage() {
           </div>
         )}
       </section>
+
+      <input
+        list="pdf-suggestions"
+        value={subject}
+        onChange={(e) => setSubject(e.target.value)}
+        placeholder="Subject"
+        className="flex-1 px-3 py-2.5 rounded-md border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+      <datalist id="pdf-suggestions">
+        {uploadedPDFs.map((pdf) => (
+          <option key={pdf} value={pdf} />
+        ))}
+      </datalist>
     </div>
   );
 }

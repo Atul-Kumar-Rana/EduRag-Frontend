@@ -1,5 +1,5 @@
+import type { Document, DocumentStatus, UploadResponse } from '@/types';
 import api from './axiosInstance';
-import type { UploadResponse, DocumentStatus, Document } from '@/types';
 
 export const uploadDocument = async (
   file: File,
@@ -34,4 +34,9 @@ export const getAllDocuments = async (subject?: string, chapter?: string): Promi
 export const deleteDocument = async (documentId: string): Promise<{ message: string; documentId: string }> => {
   const { data } = await api.delete(`/upload/documents/${documentId}`);
   return data;
+};
+
+export const fetchUploadedPDFs = async (): Promise<string[]> => {
+  const { data } = await api.get('/upload/documents');
+  return data.map((doc: { name: string }) => doc.name);
 };

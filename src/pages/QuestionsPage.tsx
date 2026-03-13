@@ -1,14 +1,21 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, Flame } from 'lucide-react';
 import { getQuestions } from '@/api/generateApi';
-import { Spinner } from '@/components/ui/Spinner';
+import { fetchUploadedPDFs } from '@/api/uploadApi';
 import { SkeletonCard } from '@/components/ui/SkeletonCard';
-import { useQuery } from '@tanstack/react-query';
 import type { Question } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Flame, Search, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { SubjectInput } from '@/components/ui/SubjectInput';
 
 function DiffBadge({ d }: { d: string }) {
-  const c = { EASY: 'bg-success/20 text-success', MEDIUM: 'bg-warning/20 text-warning', HARD: 'bg-destructive/20 text-destructive' }[d] || 'bg-muted text-muted-foreground';
+  const c =
+    {
+      EASY: 'bg-success/20 text-success',
+      MEDIUM: 'bg-warning/20 text-warning',
+      HARD: 'bg-destructive/20 text-destructive',
+    }[d] || 'bg-muted text-muted-foreground';
   return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c}`}>{d}</span>;
 }
 
@@ -19,16 +26,16 @@ function QBCard({ q }: { q: Question }) {
     <div className="rounded-xl border border-border bg-card p-5 shadow-green hover:-translate-y-0.5 transition-all">
       <div className="flex items-center gap-2 mb-2">
         <DiffBadge d={q.difficulty} />
-        <span className="px-2 py-0.5 rounded-full text-xs border border-border text-muted-foreground">{q.type}</span>
+        <span className="px-2 py-0.5 rounded-full text-xs border border-border text-muted-foreground">
+          {q.type}
+        </span>
         {q.repeatCount && q.repeatCount > 0 && (
           <span className="ml-auto text-xs text-warning flex items-center gap-1">
             <Flame className="h-3 w-3" /> Asked {q.repeatCount}x
           </span>
         )}
       </div>
-
       <p className="font-medium text-foreground mb-3">{q.questionText}</p>
-
       {q.type === 'MCQ' && q.options && (
         <div className="space-y-1.5 mb-3">
           {q.options.map((opt) => (
@@ -40,19 +47,18 @@ function QBCard({ q }: { q: Question }) {
                   : 'border-border text-foreground'
               }`}
             >
-              <span className="font-medium mr-2">{opt.label}.</span>{opt.text}
+              <span className="font-medium mr-2">{opt.label}.</span>
+              {opt.text}
             </div>
           ))}
         </div>
       )}
-
       <button
         onClick={() => setShowAnswer(!showAnswer)}
         className="text-sm text-primary hover:text-primary-hover font-medium"
       >
         {showAnswer ? 'Hide Answer' : 'View Answer'}
       </button>
-
       <AnimatePresence>
         {showAnswer && q.type !== 'MCQ' && (
           <motion.div
@@ -65,7 +71,6 @@ function QBCard({ q }: { q: Question }) {
           </motion.div>
         )}
       </AnimatePresence>
-
       <p className="text-xs text-muted-foreground mt-3">{q.subject} • {q.chapter}</p>
     </div>
   );
@@ -76,21 +81,21 @@ export default function QuestionsPage() {
   const [chapter, setChapter] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [type, setType] = useState('');
-  const [searchParams, setSearchParams] = useState<{ subject?: string; chapter?: string; difficulty?: string; type?: string }>({});
+  const [searchParams, setSearchParams] = useState<{
+    subject?: string; chapter?: string; difficulty?: string; type?: string;
+  }>({});
 
   const { data: questions = [], isLoading } = useQuery({
     queryKey: ['questions', searchParams],
     queryFn: () => getQuestions(searchParams.subject, searchParams.chapter, searchParams.difficulty, searchParams.type),
   });
 
-  const handleSearch = () => {
-    setSearchParams({
-      subject: subject || undefined,
-      chapter: chapter || undefined,
-      difficulty: difficulty || undefined,
-      type: type || undefined,
-    });
-  };
+  const handleSearch = () => setSearchParams({
+    subject: subject || undefined,
+    chapter: chapter || undefined,
+    difficulty: difficulty || undefined,
+    type: type || undefined,
+  });
 
   const handleClear = () => {
     setSubject(''); setChapter(''); setDifficulty(''); setType('');
@@ -98,6 +103,20 @@ export default function QuestionsPage() {
   };
 
   const mcqCount = questions.filter((q) => q.type === 'MCQ').length;
+
+  useEffect(() => {
+    const fetchPDFs = async () => {
+      try {
+        const pdfs = await fetchUploadedPDFs();
+        setUploadedPDFs(pdfs);
+      } catch {
+        toast.error('Failed to fetch uploaded PDFs.');
+      }
+    };
+    fetchPDFs();
+  }, []);
+
+  const [uploadedPDFs, setUploadedPDFs] = useState<string[]>([]);
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
@@ -108,12 +127,9 @@ export default function QuestionsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end p-4 rounded-xl border border-border bg-card">
-        <input
-          value={subject}
-          onChange={(e) => setSubject(e.target.value)}
-          placeholder="Subject"
-          className="px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring w-40"
-        />
+        {/* Subject with autocomplete from uploaded docs */}
+        <SubjectInput value={subject} onChange={setSubject} className="w-44" />
+
         <input
           value={chapter}
           onChange={(e) => setChapter(e.target.value)}
@@ -181,12 +197,7 @@ export default function QuestionsPage() {
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           {questions.map((q, i) => (
-            <motion.div
-              key={q.id || i}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
+            <motion.div key={q.id || i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <QBCard q={q} />
             </motion.div>
           ))}
