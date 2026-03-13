@@ -1,3 +1,4 @@
+import { extractDataFromPDF } from '@/lib/utils';
 import type { Document, DocumentStatus, Question, UploadResponse } from '@/types';
 import api from './axiosInstance';
 
@@ -30,14 +31,20 @@ export const uploadDocumentAndGenerateQuestions = async (
   formData.append('chapter', chapter);
   formData.append('uploadedBy', uploadedBy);
 
+  // Upload the document
   const { data: uploadResponse } = await api.post('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
+  // Extract data from the uploaded PDF
+  const extractedData = await extractDataFromPDF(file);
+
+  // Generate questions from the extracted data
   const { data: generatedQuestions } = await api.post('/generate', {
     subject,
     chapter,
-    numQuestions: 10, // Default number of questions to generate
+    content: extractedData,
+    numQuestions: 50, // Generate a large number of questions
     difficulty: 'MIXED',
     type: 'MIXED',
   });
