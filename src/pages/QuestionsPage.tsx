@@ -1,13 +1,12 @@
 import { getQuestions } from '@/api/generateApi';
-import { fetchUploadedPDFs } from '@/api/uploadApi';
+import { fetchUploadedPDFs, getAllDocuments } from '@/api/uploadApi';
 import { SkeletonCard } from '@/components/ui/SkeletonCard';
-import type { Question } from '@/types';
+import type { Document, Question } from '@/types';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flame, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { SubjectInput } from '@/components/ui/SubjectInput';
 
 function DiffBadge({ d }: { d: string }) {
   const c =
@@ -90,6 +89,11 @@ export default function QuestionsPage() {
     queryFn: () => getQuestions(searchParams.subject, searchParams.chapter, searchParams.difficulty, searchParams.type),
   });
 
+  const { data: documents = [] } = useQuery<Document[]>({
+    queryKey: ['uploadedDocuments'],
+    queryFn: () => getAllDocuments(),
+  });
+
   const handleSearch = () => setSearchParams({
     subject: subject || undefined,
     chapter: chapter || undefined,
@@ -127,8 +131,19 @@ export default function QuestionsPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-end p-4 rounded-xl border border-border bg-card">
-        {/* Subject with autocomplete from uploaded docs */}
-        <SubjectInput value={subject} onChange={setSubject} className="w-44" />
+        {/* Subject dropdown */}
+        <select
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className="px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring w-44"
+        >
+          <option value="">Select Subject</option>
+          {documents.map((doc) => (
+            <option key={doc.documentId} value={doc.subject}>
+              {doc.subject}
+            </option>
+          ))}
+        </select>
 
         <input
           value={chapter}

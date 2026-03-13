@@ -1,4 +1,4 @@
-import type { Document, DocumentStatus, UploadResponse } from '@/types';
+import type { Document, DocumentStatus, Question, UploadResponse } from '@/types';
 import api from './axiosInstance';
 
 export const uploadDocument = async (
@@ -16,6 +16,33 @@ export const uploadDocument = async (
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data;
+};
+
+export const uploadDocumentAndGenerateQuestions = async (
+  file: File,
+  subject: string,
+  chapter: string,
+  uploadedBy: string = 'admin'
+): Promise<{ uploadResponse: UploadResponse; generatedQuestions: Question[] }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('subject', subject);
+  formData.append('chapter', chapter);
+  formData.append('uploadedBy', uploadedBy);
+
+  const { data: uploadResponse } = await api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  const { data: generatedQuestions } = await api.post('/generate', {
+    subject,
+    chapter,
+    numQuestions: 10, // Default number of questions to generate
+    difficulty: 'MIXED',
+    type: 'MIXED',
+  });
+
+  return { uploadResponse, generatedQuestions };
 };
 
 export const getDocumentStatus = async (documentId: string): Promise<DocumentStatus> => {

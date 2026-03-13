@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Copy, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { askQuestion } from '@/api/askApi';
 import { generateQuestions } from '@/api/generateApi';
+import { fetchUploadedPDFs, uploadDocumentAndGenerateQuestions } from '@/api/uploadApi';
 import { Spinner } from '@/components/ui/Spinner';
-import { fetchUploadedPDFs } from '@/api/uploadApi';
-import type { AskResponse, Question, Difficulty, QuestionType } from '@/types';
+import type { AskResponse, Difficulty, Question, QuestionType } from '@/types';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, ChevronUp, Copy, Send, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD', 'MIXED'];
@@ -122,6 +122,16 @@ export default function PracticePage() {
       toast.error('Failed to generate questions.');
     } finally {
       setGenLoading(false);
+    }
+  };
+
+  const handleUploadAndGenerate = async (file: File, subject: string, chapter: string) => {
+    try {
+      const { uploadResponse, generatedQuestions } = await uploadDocumentAndGenerateQuestions(file, subject, chapter);
+      toast.success('File uploaded and questions generated successfully!');
+      console.log('Generated Questions:', generatedQuestions);
+    } catch (error) {
+      toast.error('Failed to upload file or generate questions.');
     }
   };
 
@@ -306,6 +316,13 @@ export default function PracticePage() {
           <option key={pdf} value={pdf} />
         ))}
       </datalist>
+
+      <input type="file" onChange={(e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          handleUploadAndGenerate(file, subject, chapter);
+        }
+      }} />
     </div>
   );
 }
