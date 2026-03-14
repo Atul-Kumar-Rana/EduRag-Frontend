@@ -27,6 +27,13 @@ export default function AdminPage() {
   const [subject, setSubject] = useState('');
   const [chapter, setChapter] = useState('');
   const [uploadedId, setUploadedId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+  localStorage.getItem("admin-auth") === "true"
+);
+
+const [passwordInput, setPasswordInput] = useState("");
+
+const ADMIN_PASSWORD = "admin123";
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['documents'],
@@ -34,6 +41,15 @@ export default function AdminPage() {
     refetchInterval: 15000,
   });
 
+  const handleAdminLogin = () => {
+  if (passwordInput === ADMIN_PASSWORD) {
+    setIsAuthenticated(true);
+    localStorage.setItem("admin-auth", "true");
+    toast.success("Admin access granted");
+  } else {
+    toast.error("Wrong password");
+  }
+};
   const uploadMutation = useMutation({
     mutationFn: async () => {
       const { uploadResponse, generatedQuestions } = await uploadDocumentAndGenerateQuestions(file!, subject, chapter);
@@ -63,9 +79,49 @@ export default function AdminPage() {
 
   const canSubmit = file && subject.trim() && chapter.trim() && !uploadMutation.isPending;
 
+  if (!isAuthenticated) {
+  return (
+    <div className="h-screen flex items-center justify-center bg-background">
+      <div className="bg-card border border-border rounded-xl p-6 w-80 space-y-4 shadow-lg">
+
+        <h2 className="text-lg font-semibold text-center text-foreground">
+          Admin Login
+        </h2>
+
+        <input
+          type="password"
+          placeholder="Enter admin password"
+          value={passwordInput}
+          onChange={(e) => setPasswordInput(e.target.value)}
+          className="w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+
+        <button
+          onClick={handleAdminLogin}
+          className="w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary-hover"
+        >
+          Login
+        </button>
+
+      </div>
+    </div>
+  );
+}
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Admin Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+  <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+
+  <button
+    onClick={() => {
+      localStorage.removeItem("admin-auth");
+      setIsAuthenticated(false);
+    }}
+    className="px-3 py-1 text-sm bg-destructive text-white rounded-md"
+  >
+    Logout
+  </button>
+</div>
 
       <div className="grid lg:grid-cols-5 gap-8">
         {/* Upload form */}
