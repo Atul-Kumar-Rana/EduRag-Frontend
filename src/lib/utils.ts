@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import pdfjsLib from "pdfjs-dist";
+import * as pdfjsLib from "pdfjs-dist";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
