@@ -2,6 +2,7 @@
 backend/target/
 backend/.mvn/
 backend/*.iml
+backend/src/main/resources/application.properties
 *.class
 *.jar
 *.war
